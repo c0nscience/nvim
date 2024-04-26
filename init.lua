@@ -1,6 +1,3 @@
--- Set <space> as the leader key
--- See `:help mapleader`
-
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
@@ -839,6 +836,13 @@ require('lazy').setup({
       direction = 'float',
       float_opts = { border = 'rounded' },
     },
+  },
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    config = true,
+    -- use opts = {} for passing setup options
+    -- this is equalent to setup({}) function
   },
 }, {
   ui = {
