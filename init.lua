@@ -4,7 +4,7 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-vim.opt.guicursor = ''
+-- vim.opt.guicursor = ''
 -- Set to true if you have a Nerd Font installed
 vim.g.have_nerd_font = true
 
@@ -68,12 +68,47 @@ vim.opt.undofile = true
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
+user_terminals = {}
+function toggle_term_cmd(opts)
+  local terms = user_terminals
+  -- if a command string is provided, create a basic table for Terminal:new() options
+  if type(opts) == 'string' then
+    opts = { cmd = opts, hidden = true }
+  end
+  local num = vim.v.count > 0 and vim.v.count or 1
+  -- if terminal doesn't exist yet, create it
+  if not terms[opts.cmd] then
+    terms[opts.cmd] = {}
+  end
+  if not terms[opts.cmd][num] then
+    if not opts.count then
+      opts.count = vim.tbl_count(terms) * 100 + num
+    end
+    if not opts.on_exit then
+      opts.on_exit = function()
+        terms[opts.cmd][num] = nil
+      end
+    end
+    terms[opts.cmd][num] = require('toggleterm.terminal').Terminal:new(opts)
+  end
+  -- toggle the terminal
+  terms[opts.cmd][num]:toggle()
+end
 
 vim.keymap.set('n', '<C-d>', '<C-d>zz')
 vim.keymap.set('n', '<C-u>', '<C-u>zz')
-vim.keymap.set('n', '<leader>r', vim.cmd.UndotreeToggle, { desc = 'Open undo-tree panel' })
+vim.keymap.set('n', '<leader>g', vim.cmd.UndotreeToggle, { desc = 'Open undo-tree panel' })
 vim.keymap.set('n', '<C-s>', '<cmd>w<cr>', { desc = 'Save' })
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Open File Tree' })
+
+vim.keymap.set('n', '<leader>th', '<cmd>ToggleTerm size=10 direction=horizontal<cr>', { desc = 'ToggleTerm horizontal split' })
+vim.keymap.set('n', '<leader>tm', function()
+  toggle_term_cmd 'mprocs'
+end, { desc = 'ToggleTerm npm run dev' })
+vim.keymap.set('n', '<F7>', '<Cmd>execute v:count . "ToggleTerm"<CR>', { desc = 'Toggle terminal' })
+
+vim.keymap.set('i', '<F7>', '<Esc><Cmd>execute v:count . "ToggleTerm"<CR>', { desc = 'Toggle terminal' })
+vim.keymap.set('t', '<F7>', '<Cmd>execute v:count . "ToggleTerm"<CR>', { desc = 'Toggle terminal' })
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
@@ -777,6 +812,34 @@ require('lazy').setup({
   { 'mbbill/undotree', lazy = false },
   { 'tpope/vim-fugitive', lazy = false },
   { 'max397574/better-escape.nvim', event = 'InsertCharPre', opts = { timeout = 300 } },
+  {
+    'akinsho/toggleterm.nvim',
+    cmd = { 'ToggleTerm', 'TermExec' },
+    opts = {
+      highlights = {
+        Normal = { link = 'Normal' },
+        NormalNC = { link = 'NormalNC' },
+        NormalFloat = { link = 'NormalFloat' },
+        FloatBorder = { link = 'FloatBorder' },
+        StatusLine = { link = 'StatusLine' },
+        StatusLineNC = { link = 'StatusLineNC' },
+        WinBar = { link = 'WinBar' },
+        WinBarNC = { link = 'WinBarNC' },
+      },
+      size = 10,
+      on_create = function(t)
+        vim.opt.foldcolumn = '0'
+        vim.opt.signcolumn = 'no'
+        local toggle = function()
+          t:toggle()
+        end
+        vim.keymap.set({ 'n', 't', 'i' }, '<F7>', toggle, { desc = 'Toggle terminal', buffer = t.bufnr })
+      end,
+      shading_factor = 2,
+      direction = 'float',
+      float_opts = { border = 'rounded' },
+    },
+  },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
