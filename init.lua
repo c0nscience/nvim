@@ -106,7 +106,13 @@ vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Open File Tree' })
 vim.keymap.set('n', '<leader>th', '<cmd>ToggleTerm size=10 direction=horizontal<cr>', { desc = 'ToggleTerm horizontal split' })
 vim.keymap.set('n', '<leader>tm', function()
   toggle_term_cmd 'mprocs'
-end, { desc = 'ToggleTerm npm run dev' })
+end, { desc = 'ToggleTerm run mprocs' })
+vim.keymap.set('n', '<leader>td', function()
+  require('dbee').toggle()
+end, { desc = 'Toggle DBee toggle' })
+vim.keymap.set('n', '<leader>tc', function()
+  require('dbee').close()
+end, { desc = 'Toggle DBee close' })
 vim.keymap.set('n', '<F7>', '<Cmd>execute v:count . "ToggleTerm"<CR>', { desc = 'Toggle terminal' })
 
 vim.keymap.set('i', '<F7>', '<Esc><Cmd>execute v:count . "ToggleTerm"<CR>', { desc = 'Toggle terminal' })
@@ -898,6 +904,21 @@ require('lazy').setup({
       direction = 'float',
       float_opts = { border = 'rounded' },
     },
+  },
+  {
+    'kndndrj/nvim-dbee',
+    dependencies = {
+      'MunifTanjim/nui.nvim',
+    },
+    build = function()
+      -- Install tries to automatically detect the install method.
+      -- if it fails, try calling it with one of these parameters:
+      --    "curl", "wget", "bitsadmin", "go"
+      require('dbee').install()
+    end,
+    config = function()
+      require('dbee').setup(--[[optional config]])
+    end,
   },
   {
     'windwp/nvim-autopairs',
